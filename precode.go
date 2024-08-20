@@ -67,12 +67,12 @@ func createTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	for key, _ := range tasks {
-		if task.ID == key {
-			http.Error(w, "Уже есть задача с таким номером!", http.StatusBadRequest)
-			return
-		}
+
+	if _, ok := tasks[task.ID]; ok {
+		http.Error(w, "Уже есть задача с таким номером!", http.StatusBadRequest)
+		return
 	}
+
 	tasks[task.ID] = task
 
 	w.Header().Set("Content-Type", "application/json")
