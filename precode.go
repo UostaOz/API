@@ -49,11 +49,11 @@ func getAll(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	_, _ = w.Write(resp)
 }
 
 // Обработчик для отправки задачи на сервер
-func sendTask(w http.ResponseWriter, r *http.Request) {
+func createTask(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	var buf bytes.Buffer
 
@@ -67,7 +67,12 @@ func sendTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	for key, _ := range tasks {
+		if task.ID == key {
+			http.Error(w, "Уже есть задача с таким номером!", http.StatusBadRequest)
+			return
+		}
+	}
 	tasks[task.ID] = task
 
 	w.Header().Set("Content-Type", "application/json")
@@ -101,21 +106,14 @@ func delTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	delete(tasks, id)
-	resp, err := json.Marshal(tasks)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+
 }
 
 func main() {
 	r := chi.NewRouter()
 
 	r.Get("/tasks", getAll)
-	r.Post("/tasks", sendTask)
+	r.Post("/tasks", createTask)
 	r.Get("/tasks/{id}", getId)
 	r.Delete("/tasks/{id}", delTask)
 
